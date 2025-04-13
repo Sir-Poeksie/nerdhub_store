@@ -118,8 +118,8 @@ INSERT INTO country (name)
 
 INSERT INTO address (street, city, postal_code, country_id) 
 VALUES 
-('123 Main St', 'New York', '10001', 1),
-('456 Maple Ave', 'Toronto', 'M4B 1B4', 2),
+('1325 Motintinyane', 'Pretoria', '0122', 1),
+('153 3rd Avenue ', 'Johannesburg', '2014', 2),
 ('789 High St', 'London', 'SW1A 1AA', 3),
 ('101 Elm St', 'Sydney', '2000', 4),
 ('202 Oak St', 'Berlin', '10115', 5);
@@ -130,9 +130,9 @@ INSERT INTO customer (first_name, last_name, email)
 VALUES 
 ('Matthew', 'Mahlangu', 'matthewsiyabonga@gmail.com'),
 ('Somakhawula', 'Mrube', 'sohawulamrube@gmail.com'),
-('Alice', 'Johnson', 'alice.johnson@gmail.com'),
-('Bob', 'Brown', 'bob.brown@gmail.com'),
-('Charlie', 'Davis', 'charlie.davis@gmail.com');
+('Alice', 'Johnson', 'alicejohnson@gmail.com'),
+('Bob', 'Brown', 'bobbrown@gmail.com'),
+('Charlie', 'Davis', 'charliedavis@gmail.com');
 
 INSERT INTO customer_address (customer_id, address_id, status_id) 
     VALUES 
@@ -150,7 +150,9 @@ INSERT INTO book_language (language_name)
     VALUES 
     ('English'), ('Ndebele'), ('German'), ('Zulu'), ('Pedi');
 
-INSERT INTO publisher (name) VALUES ('Penguin Random House'), ('HarperCollins'), ('Macmillan'), ('Simon & Schuster'), ('Hachette');
+INSERT INTO publisher (name)
+    VALUES 
+    ('Penguin Random House'), ('HarperCollins'), ('Macmillan'), ('Simon & Schuster'), ('Hachette');
 
 INSERT INTO book (title, isbn, language_id, publisher_id, price) 
 VALUES 
