@@ -114,7 +114,7 @@ CREATE TABLE order_history (
     FOREIGN KEY (status_id) REFERENCES order_status(status_id)
 );
 
-INSERTING DATA INTO THE TABLES
+-- INSERTING DATA INTO THE TABLES
 
 INSERT INTO country (name)
     VALUES
@@ -306,3 +306,115 @@ VALUES
 (13, 2),
 (14, 3),
 (15, 1);
+
+CREATE TABLE order_line (
+    order_id INT,
+    book_id INT,
+    quantity INT,
+    PRIMARY KEY (order_id, book_id),
+    FOREIGN KEY (order_id) REFERENCES cust_order(order_id),
+    FOREIGN KEY (book_id) REFERENCES book(book_id)
+);
+    
+-- QUERIES & VIEWS
+
+SELECT c.first_name, c.last_name, b.title, ol.quantity, co.order_date
+FROM customer c
+JOIN cust_order co ON c.customer_id = co.customer_id
+JOIN order_line ol ON co.order_id = ol.order_id
+JOIN book b ON ol.book_id = b.book_id;
+
+    -- Book Order
+CREATE VIEW vw_book_order_summary AS
+SELECT 
+    b.title,
+    SUM(ol.quantity) AS total_sold,
+    COUNT(DISTINCT ol.order_id) AS total_orders
+FROM order_line ol
+JOIN book b ON ol.book_id = b.book_id
+GROUP BY b.title;
+
+-- Order perShipping meth
+SELECT sm.method_name, COUNT(*) AS total_orders
+FROM cust_order co
+JOIN shipping_method sm ON co.shipping_method_id = sm.method_id
+GROUP BY sm.method_name;
+
+
+-- Add new Customer
+
+DELIMITER //
+CREATE PROCEDURE AddCustomerWithAddress(
+    IN fname VARCHAR(100),
+    IN lname VARCHAR(100),
+    IN email VARCHAR(255),
+    IN street VARCHAR(255),
+    IN city VARCHAR(100),
+    IN postal VARCHAR(20),
+    IN countryName VARCHAR(100),
+    IN statusName VARCHAR(50)
+)
+BEGIN
+    DECLARE cid INT;
+    DECLARE addr_id INT;
+    DECLARE country_id INT;
+    DECLARE status_id INT;
+
+    SELECT country_id INTO country_id FROM country WHERE name = countryName;
+    SELECT status_id INTO status_id FROM address_status WHERE status_name = statusName;
+
+    INSERT INTO customer(first_name, last_name, email) VALUES(fname, lname, email);
+    SET cid = LAST_INSERT_ID();
+
+    INSERT INTO address(street, city, postal_code, country_id) 
+    VALUES(street, city, postal, country_id);
+    SET addr_id = LAST_INSERT_ID();
+
+    INSERT INTO customer_address(customer_id, address_id, status_id) 
+    VALUES(cid, addr_id, status_id);
+END //
+DELIMITER ;
+
+-- Client Order History
+
+DELIMITER //
+CREATE PROCEDURE GetCustomerOrderHistory(IN cust_id INT)
+BEGIN
+    SELECT co.order_id, b.title, ol.quantity, os.status_name, oh.updated_at
+    FROM cust_order co
+    JOIN order_line ol ON co.order_id = ol.order_id
+    JOIN book b ON ol.book_id = b.book_id
+    JOIN order_status os ON co.status_id = os.status_id
+    LEFT JOIN order_history oh ON co.order_id = oh.order_id
+    WHERE co.customer_id = cust_id;
+END //
+DELIMITER ;
+
+-- TODO: Trigger log Order_Status
+DELIMITER //
+CREATE TRIGGER trg_log_order_status
+AFTER UPDATE ON cust_order
+FOR EACH ROW
+BEGIN
+    IF OLD.status_id != NEW.status_id THEN
+        INSERT INTO order_history(order_id, status_id)
+        VALUES(NEW.order_id, NEW.status_id);
+    END IF;
+END //
+DELIMITER ;
+
+-- Customer w Order deleted Prevention
+
+DELIMITER //
+CREATE TRIGGER trg_prevent_customer_delete
+BEFORE DELETE ON customer
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM cust_order WHERE customer_id = OLD.customer_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot delete customer with existing orders.';
+    END IF;
+END //
+DELIMITER ;
+
+
