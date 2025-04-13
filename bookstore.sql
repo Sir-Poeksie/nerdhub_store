@@ -114,7 +114,7 @@ CREATE TABLE order_history (
     FOREIGN KEY (status_id) REFERENCES order_status(status_id)
 );
 
-INSERTING DATA INTO THE TABLES
+-- INSERTING DATA INTO THE TABLES
 
 INSERT INTO country (name)
     VALUES
@@ -306,3 +306,13 @@ VALUES
 (13, 2),
 (14, 3),
 (15, 1);
+
+CREATE TABLE order_line (
+    order_id INT,
+    book_id INT,
+    quantity INT,
+    PRIMARY KEY (order_id, book_id),
+    FOREIGN KEY (order_id) REFERENCES cust_order(order_id),
+    FOREIGN KEY (book_id) REFERENCES book(book_id)
+);
+
